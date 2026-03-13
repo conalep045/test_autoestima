@@ -249,14 +249,6 @@
             margin: 15px 0;
         }
 
-        .grafica-individual-container {
-            max-width: 250px;
-            margin: 15px auto;
-            padding: 15px;
-            background: white;
-            border-radius: 15px;
-        }
-
         .grafica-grupal-container {
             width: 100%;
             height: 300px;
@@ -395,7 +387,7 @@
                 📤 ENVIAR MIS RESPUESTAS
             </button>
 
-            <!-- Resultado individual (se muestra después de enviar) -->
+            <!-- Resultado individual (se muestra después de enviar) - SIN GRÁFICA -->
             <div id="resultado-individual" style="display: none;">
                 <h3 style="margin: 20px 0 10px;">🎯 Tu Resultado</h3>
                 <div class="resultado-individual">
@@ -508,7 +500,6 @@
 
         // Variables globales
         let contadorTests = 1;
-        let chartIndividual = null;
         let chartGrupal = null;
         let todosLosDatos = [];
         let modoDocente = false;
@@ -642,37 +633,6 @@
             }
         }
 
-        // Crear gráfica individual
-        function crearGraficaIndividual(nivel) {
-            const ctx = document.getElementById('grafica-individual').getContext('2d');
-            
-            if (chartIndividual) {
-                chartIndividual.destroy();
-            }
-            
-            let datos = [0, 0, 0];
-            if (nivel.includes('Baja')) datos = [1, 0, 0];
-            else if (nivel.includes('Correcta')) datos = [0, 1, 0];
-            else datos = [0, 0, 1];
-            
-            chartIndividual = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Baja', 'Correcta', 'Alta'],
-                    datasets: [{
-                        data: datos,
-                        backgroundColor: ['#FF6B6B', '#FFD93D', '#6BCB77'],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    cutout: '70%',
-                    plugins: { legend: { display: false } }
-                }
-            });
-        }
-
         // ===========================================
         // FUNCIONES PARA CARGAR DATOS DE GOOGLE SHEETS
         // ===========================================
@@ -680,8 +640,6 @@
         // Cargar datos desde Google Sheets
         async function cargarDatosDesdeSheets() {
             try {
-                document.getElementById('tabla-participantes').innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 20px;">Cargando datos...</td></tr>';
-                
                 const response = await fetch(URL_GOOGLE_SCRIPT + '?accion=obtener', {
                     method: 'GET',
                     mode: 'cors'
@@ -703,8 +661,6 @@
                     }
                     
                     console.log('✅ Datos cargados desde Sheets:', todosLosDatos.length);
-                } else {
-                    console.error('Error cargando datos:', data.error);
                 }
             } catch (error) {
                 console.error('Error de conexión:', error);
@@ -826,7 +782,7 @@
         }
 
         // ===========================================
-        // ENVIAR RESPUESTAS A GOOGLE SHEETS
+        // ENVIAR RESPUESTAS A GOOGLE SHEETS (SIN GRÁFICA)
         // ===========================================
         async function enviarRespuestas() {
             const nombre = document.getElementById('nombre-alumno').value.trim();
@@ -860,21 +816,11 @@
             const puntaje = calcularPuntaje(respuestas);
             const nivel = obtenerNivel(puntaje);
             
-            const datosAlumno = {
-                nombre: nombre,
-                grupo: grupo,
-                respuestas: respuestas,
-                puntaje: puntaje,
-                nivel: nivel,
-                fecha: new Date().toLocaleString()
-            };
-            
-            // Mostrar resultado individual
+            // Mostrar resultado individual (SIN GRÁFICA)
             document.getElementById('resultado-individual').style.display = 'block';
             document.getElementById('puntaje-individual').textContent = puntaje;
             document.getElementById('nivel-individual').textContent = nivel;
             document.getElementById('recomendacion-individual').textContent = obtenerRecomendacion(nivel);
-            crearGraficaIndividual(nivel);
             
             const btn = document.getElementById('btnEnviar');
             const textoOriginal = btn.textContent;
@@ -888,7 +834,14 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(datosAlumno)
+                    body: JSON.stringify({
+                        nombre: nombre,
+                        grupo: grupo,
+                        respuestas: respuestas,
+                        puntaje: puntaje,
+                        nivel: nivel,
+                        fecha: new Date().toLocaleString()
+                    })
                 });
                 
                 alert('✅ ¡Gracias! Tus respuestas se han guardado correctamente.');
