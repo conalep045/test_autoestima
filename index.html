@@ -498,7 +498,7 @@
         // ===========================================
         // CONFIGURACIÓN - ¡PON TU URL AQUÍ!
         // ===========================================
-        const URL_GOOGLE_SCRIPT = 'https://script.google.com/macros/s/AKfycbyFi6NIEwFryKv2KS7ZzyWKxeR7EoYRsrHtj2uyJNU7JGsSDs9Wawv0ojU9YjEsrwzFXg/exec';
+        const URL_GOOGLE_SCRIPT = 'https://script.google.com/macros/s/AKfycbwkHxkV1KGsXgNBFA5UTm4LLP3a1WEvjPnL_d65iUFY19uC8ryP5oAtHVQ1Y4AxMsesLw/exec';
         const TOKEN_DOCENTE = 'conalep2026'; // ← CAMBIA ESTO por tu token secreto
         // ===========================================
 
@@ -881,89 +881,104 @@
         // ===========================================
         // ENVIAR RESPUESTAS A GOOGLE SHEETS (SIN GRÁFICA)
         // ===========================================
-        async function enviarRespuestas() {
-            const nombre = document.getElementById('nombre-alumno').value.trim();
-            const grupo = document.getElementById('grupo-alumno').value.trim();
-            
-            if (!nombre || !grupo) {
-                alert('❌ Por favor ingresa tu nombre y grupo');
-                return;
+       async function enviarRespuestas() {
+    const nombre = document.getElementById('nombre-alumno').value.trim();
+    const grupo = document.getElementById('grupo-alumno').value.trim();
+    
+    if (!nombre || !grupo) {
+        alert('❌ Por favor ingresa tu nombre y grupo');
+        return;
+    }
+    
+    const respuestas = [];
+    for (let i = 0; i < preguntas.length; i++) {
+        const radios = document.getElementsByName(`p${i}`);
+        let seleccionada = null;
+        
+        for (const radio of radios) {
+            if (radio.checked) {
+                seleccionada = radio.value;
+                break;
             }
-            
-            const respuestas = [];
-            for (let i = 0; i < preguntas.length; i++) {
-                const radios = document.getElementsByName(`p${i}`);
-                let seleccionada = null;
-                
-                for (const radio of radios) {
-                    if (radio.checked) {
-                        seleccionada = radio.value;
-                        break;
-                    }
-                }
-                
-                if (!seleccionada) {
-                    alert(`❌ Por favor responde la pregunta ${i + 1}`);
-                    return;
-                }
-                
-                respuestas.push(seleccionada);
-            }
-            
-            const puntaje = calcularPuntaje(respuestas);
-            const nivel = obtenerNivel(puntaje);
-            
-            // Mostrar resultado individual (SIN GRÁFICA)
-            document.getElementById('resultado-individual').style.display = 'block';
-            document.getElementById('puntaje-individual').textContent = puntaje;
-            document.getElementById('nivel-individual').textContent = nivel;
-            document.getElementById('recomendacion-individual').textContent = obtenerRecomendacion(nivel);
-            
-            const btn = document.getElementById('btnEnviar');
-            const textoOriginal = btn.textContent;
-            btn.textContent = '⏳ ENVIANDO...';
-            btn.disabled = true;
-            
-            try {
-                await fetch(URL_GOOGLE_SCRIPT, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        nombre: nombre,
-                        grupo: grupo,
-                        respuestas: respuestas,
-                        puntaje: puntaje,
-                        nivel: nivel,
-                        fecha: new Date().toLocaleString()
-                    })
-                });
-                
-                alert('✅ ¡Gracias! Tus respuestas se han guardado correctamente.');
-                
-            } catch (error) {
-                console.error('Error:', error);
-                alert('⚠️ Hubo un problema de conexión, pero tus respuestas se guardaron localmente.');
-            }
-            
-            btn.textContent = textoOriginal;
-            btn.disabled = false;
-            
-            contadorTests++;
-            document.getElementById('alumno-numero').textContent = contadorTests;
-            document.getElementById('test-numero').textContent = contadorTests;
-            
-            // Limpiar selecciones
-            const radios = document.querySelectorAll('input[type="radio"]');
-            radios.forEach(radio => radio.checked = false);
-            document.querySelectorAll('.opcion').forEach(op => {
-                op.classList.remove('seleccionada');
-            });
-            
-            document.getElementById('nombre-alumno').value = '';
         }
+        
+        if (!seleccionada) {
+            alert(`❌ Por favor responde la pregunta ${i + 1}`);
+            return;
+        }
+        
+        respuestas.push(seleccionada);
+    }
+    
+    const puntaje = calcularPuntaje(respuestas);
+    const nivel = obtenerNivel(puntaje);
+    
+    // Mostrar resultado individual
+    document.getElementById('resultado-individual').style.display = 'block';
+    document.getElementById('puntaje-individual').textContent = puntaje;
+    document.getElementById('nivel-individual').textContent = nivel;
+    document.getElementById('recomendacion-individual').textContent = obtenerRecomendacion(nivel);
+    
+    const btn = document.getElementById('btnEnviar');
+    const textoOriginal = btn.textContent;
+    btn.textContent = '⏳ ENVIANDO...';
+    btn.disabled = true;
+    
+    try {
+        await fetch(URL_GOOGLE_SCRIPT, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                nombre: nombre,
+                grupo: grupo,
+                respuestas: respuestas,
+                puntaje: puntaje,
+                nivel: nivel,
+                fecha: new Date().toLocaleString()
+            })
+        });
+        
+        alert('✅ ¡Gracias! Tus respuestas se han guardado correctamente.');
+        
+    } catch (error) {
+        console.error('Error:', error);
+        alert('⚠️ Hubo un problema de conexión, pero tus respuestas se guardaron localmente.');
+    }
+    
+    btn.textContent = textoOriginal;
+    btn.disabled = false;
+    
+    contadorTests++;
+    document.getElementById('alumno-numero').textContent = contadorTests;
+    document.getElementById('test-numero').textContent = contadorTests;
+    
+    // LIMPIAR TODO - VERSIÓN CORREGIDA
+    // 1. Limpiar selecciones de radio buttons
+    const radios = document.querySelectorAll('input[type="radio"]');
+    radios.forEach(radio => radio.checked = false);
+    
+    // 2. Quitar clase seleccionada de las opciones
+    document.querySelectorAll('.opcion').forEach(op => {
+        op.classList.remove('seleccionada');
+    });
+    
+    // 3. Limpiar nombre
+    document.getElementById('nombre-alumno').value = '';
+    
+    // 4. 🔥 NUEVO: Restaurar grupo a valor por defecto (501)
+    document.getElementById('grupo-alumno').value = '501';
+    
+    // 5. 🔥 NUEVO: Ocultar el resultado individual
+    document.getElementById('resultado-individual').style.display = 'none';
+    
+    // 6. 🔥 NUEVO: Limpiar los textos del resultado (por si acaso)
+    document.getElementById('puntaje-individual').textContent = '0';
+    document.getElementById('nivel-individual').textContent = '';
+    document.getElementById('recomendacion-individual').textContent = '';
+}
 
         // ===========================================
         // INICIALIZACIÓN
