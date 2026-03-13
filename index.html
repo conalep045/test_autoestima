@@ -316,6 +316,12 @@
             margin: 15px 0;
         }
 
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
         @media (max-width: 600px) {
             .opciones {
                 grid-template-columns: 1fr;
@@ -429,7 +435,7 @@
 
             <!-- Botones de acción -->
             <div style="display: flex; gap: 10px; margin: 20px 0;">
-                <button class="btn btn-info" onclick="cargarDatosGrupo()" style="flex: 1;">🔄 Actualizar</button>
+                <button class="btn btn-info" onclick="cargarDatosDesdeSheets()" style="flex: 1;">🔄 Actualizar</button>
                 <button class="btn btn-warning" onclick="descargarGraficaGrupal()" style="flex: 1;">📥 Descargar Gráfica</button>
             </div>
 
@@ -445,7 +451,7 @@
                         </tr>
                     </thead>
                     <tbody id="tabla-participantes">
-                        <tr><td colspan="3" style="text-align: center; padding: 20px;">No hay participantes aún</td></tr>
+                        <tr><td colspan="3" style="text-align: center; padding: 20px;">Cargando datos...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -459,9 +465,10 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         // ===========================================
-        // CONFIGURACIÓN - TU URL DE GOOGLE APPS SCRIPT
+        // CONFIGURACIÓN - ¡PON TU URL AQUÍ!
         // ===========================================
-        const URL_GOOGLE_SCRIPT = 'https://script.google.com/macros/s/AKfycbyFi6NIEwFryKv2KS7ZzyWKxeR7EoYRsrHtj2uyJNU7JGsSDs9Wawv0ojU9YjEsrwzFXg/exec';
+        const URL_GOOGLE_SCRIPT = 'https://script.google.com/macros/s/AKfycbyFi6NIEwFryKv2KS7ZzyWKxeR7EoYRsrHtj2uyJNU7JGsSDs9Wawv0ojU9YjEsrwzFXg/exec
+';
         // ===========================================
 
         // Las 20 preguntas del test
@@ -494,6 +501,10 @@
         let chartGrupal = null;
         let todosLosDatos = [];
 
+        // ===========================================
+        // FUNCIONES DEL TEST
+        // ===========================================
+
         // Cambiar entre pestañas
         function cambiarPestana(pestana) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -502,16 +513,15 @@
             if (pestana === 'test') {
                 document.querySelectorAll('.tab')[0].classList.add('active');
                 document.getElementById('tab-test').classList.add('active');
-                // Aseguramos que las preguntas se muestren
                 generarPreguntas();
             } else {
                 document.querySelectorAll('.tab')[1].classList.add('active');
                 document.getElementById('tab-grupo').classList.add('active');
-                cargarDatosDesdeStorage();
+                cargarDatosDesdeSheets();
             }
         }
 
-        // Generar las preguntas en el HTML
+        // Generar las preguntas
         function generarPreguntas() {
             const container = document.getElementById('preguntas');
             if (!container) return;
@@ -633,19 +643,41 @@
             });
         }
 
-        // Guardar en localStorage
-        function guardarEnStorage(datos) {
-            let existentes = JSON.parse(localStorage.getItem('resultadosTest')) || [];
-            existentes.push(datos);
-            localStorage.setItem('resultadosTest', JSON.stringify(existentes));
-            todosLosDatos = existentes;
-        }
+        // ===========================================
+        // FUNCIONES PARA CARGAR DATOS DE GOOGLE SHEETS
+        // ===========================================
 
-        // Cargar datos de localStorage
-        function cargarDatosDesdeStorage() {
-            todosLosDatos = JSON.parse(localStorage.getItem('resultadosTest')) || [];
-            actualizarSelectorGrupos();
-            cargarDatosGrupo();
+        // Cargar datos desde Google Sheets
+        async function cargarDatosDesdeSheets() {
+            try {
+                document.getElementById('tabla-participantes').innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 20px;">Cargando datos...</td></tr>';
+                
+                const response = await fetch(URL_GOOGLE_SCRIPT + '?accion=obtener', {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.datos) {
+                    todosLosDatos = data.datos.map(d => ({
+                        nombre: d.nombre,
+                        grupo: d.grupo.toString(),
+                        nivel: d.nivel,
+                        puntaje: d.puntaje
+                    }));
+                    
+                    actualizarSelectorGrupos();
+                    cargarDatosGrupo();
+                    console.log('✅ Datos cargados desde Sheets:', todosLosDatos.length);
+                } else {
+                    console.error('Error cargando datos:', data.error);
+                    document.getElementById('tabla-participantes').innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 20px;">Error al cargar datos</td></tr>';
+                }
+            } catch (error) {
+                console.error('Error de conexión:', error);
+                document.getElementById('tabla-participantes').innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 20px;">Error de conexión</td></tr>';
+            }
         }
 
         // Actualizar selector de grupos
@@ -657,7 +689,8 @@
             
             let opciones = '<option value="todos">TODOS LOS GRUPOS</option>';
             grupos.forEach(grupo => {
-                opciones += `<option value="${grupo}">Grupo ${grupo}</option>`;
+                const count = todosLosDatos.filter(d => d.grupo === grupo).length;
+                opciones += `<option value="${grupo}">Grupo ${grupo} (${count} alumnos)</option>`;
             });
             
             select.innerHTML = opciones;
@@ -757,7 +790,9 @@
             link.click();
         }
 
-        // ENVIAR RESPUESTAS A GOOGLE SHEETS Y GUARDAR LOCAL
+        // ===========================================
+        // ENVIAR RESPUESTAS A GOOGLE SHEETS
+        // ===========================================
         async function enviarRespuestas() {
             const nombre = document.getElementById('nombre-alumno').value.trim();
             const grupo = document.getElementById('grupo-alumno').value.trim();
@@ -799,8 +834,7 @@
                 fecha: new Date().toLocaleString()
             };
             
-            guardarEnStorage(datosAlumno);
-            
+            // Mostrar resultado individual
             document.getElementById('resultado-individual').style.display = 'block';
             document.getElementById('puntaje-individual').textContent = puntaje;
             document.getElementById('nivel-individual').textContent = nivel;
@@ -836,6 +870,7 @@
             document.getElementById('alumno-numero').textContent = contadorTests;
             document.getElementById('test-numero').textContent = contadorTests;
             
+            // Limpiar selecciones
             const radios = document.querySelectorAll('input[type="radio"]');
             radios.forEach(radio => radio.checked = false);
             document.querySelectorAll('.opcion').forEach(op => {
@@ -845,12 +880,19 @@
             document.getElementById('nombre-alumno').value = '';
         }
 
-        // Inicializar - AHORA SÍ SE EJECUTA
+        // ===========================================
+        // INICIALIZACIÓN
+        // ===========================================
         document.addEventListener('DOMContentLoaded', function() {
             generarPreguntas();
             document.getElementById('alumno-numero').textContent = contadorTests;
             document.getElementById('test-numero').textContent = contadorTests;
-            cargarDatosDesdeStorage();
+            
+            // Cargar datos desde Sheets al iniciar
+            cargarDatosDesdeSheets();
+            
+            // Actualizar cada 30 segundos (opcional)
+            setInterval(cargarDatosDesdeSheets, 30000);
         });
     </script>
 </body>
