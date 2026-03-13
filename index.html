@@ -322,6 +322,16 @@
             color: #666;
         }
 
+        .modo-docente-badge {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            color: white;
+            padding: 10px;
+            border-radius: 30px;
+            text-align: center;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
         @media (max-width: 600px) {
             .opciones {
                 grid-template-columns: 1fr;
@@ -349,13 +359,18 @@
         <h1>Test de Autoestima Profesional</h1>
         <div class="subtitle">Responde las 20 preguntas con honestidad</div>
 
-        <!-- Pestañas -->
-        <div class="tabs">
+        <!-- Badge de modo docente (solo visible con acceso) -->
+        <div id="modo-docente-badge" class="modo-docente-badge" style="display: none;">
+            👑 MODO DOCENTE ACTIVADO - Puedes ver resultados
+        </div>
+
+        <!-- Pestañas (solo visibles en modo docente) -->
+        <div class="tabs" id="tabs-container" style="display: none;">
             <div class="tab active" onclick="cambiarPestana('test')">📝 Responder Test</div>
             <div class="tab" onclick="cambiarPestana('grupo')">📊 Ver Resultados</div>
         </div>
 
-        <!-- Contenido: Responder Test -->
+        <!-- Contenido: Responder Test (siempre visible) -->
         <div id="tab-test" class="tab-content active">
             <div class="alumno-actual">
                 <span>Alumno: <strong><span id="alumno-numero">1</span></strong></span>
@@ -398,7 +413,7 @@
             </div>
         </div>
 
-        <!-- Contenido: Ver Resultados -->
+        <!-- Contenido: Ver Resultados (solo accesible en modo docente) -->
         <div id="tab-grupo" class="tab-content">
             <h2 style="margin-bottom: 20px;">📊 RESULTADOS DEL GRUPO</h2>
             
@@ -458,7 +473,7 @@
         </div>
 
         <div class="footer">
-            <p>✅ Tus respuestas se guardan automáticamente | Los resultados se actualizan en tiempo real</p>
+            <p>✅ Tus respuestas se guardan automáticamente</p>
         </div>
     </div>
 
@@ -468,6 +483,7 @@
         // CONFIGURACIÓN - ¡PON TU URL AQUÍ!
         // ===========================================
         const URL_GOOGLE_SCRIPT = 'https://script.google.com/macros/s/AKfycbyFi6NIEwFryKv2KS7ZzyWKxeR7EoYRsrHtj2uyJNU7JGsSDs9Wawv0ojU9YjEsrwzFXg/exec';
+        const TOKEN_DOCENTE = 'conalep2026'; // ← CAMBIA ESTO por tu token secreto
         // ===========================================
 
         // Las 20 preguntas del test
@@ -499,13 +515,28 @@
         let chartIndividual = null;
         let chartGrupal = null;
         let todosLosDatos = [];
+        let modoDocente = false;
 
         // ===========================================
-        // FUNCIONES DEL TEST
+        // VERIFICAR ACCESO POR PARÁMETRO EN URL
         // ===========================================
+        function verificarAccesoDocente() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('acceso');
+            
+            if (token === TOKEN_DOCENTE) {
+                modoDocente = true;
+                document.getElementById('modo-docente-badge').style.display = 'block';
+                document.getElementById('tabs-container').style.display = 'flex';
+                return true;
+            }
+            return false;
+        }
 
-        // Cambiar entre pestañas
+        // Cambiar entre pestañas (solo disponible en modo docente)
         function cambiarPestana(pestana) {
+            if (!modoDocente) return;
+            
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             
@@ -519,6 +550,10 @@
                 cargarDatosDesdeSheets();
             }
         }
+
+        // ===========================================
+        // FUNCIONES DEL TEST
+        // ===========================================
 
         // Generar las preguntas
         function generarPreguntas() {
@@ -666,16 +701,17 @@
                         puntaje: d.puntaje
                     }));
                     
-                    actualizarSelectorGrupos();
-                    cargarDatosGrupo();
+                    if (modoDocente) {
+                        actualizarSelectorGrupos();
+                        cargarDatosGrupo();
+                    }
+                    
                     console.log('✅ Datos cargados desde Sheets:', todosLosDatos.length);
                 } else {
                     console.error('Error cargando datos:', data.error);
-                    document.getElementById('tabla-participantes').innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 20px;">Error al cargar datos</td></tr>';
                 }
             } catch (error) {
                 console.error('Error de conexión:', error);
-                document.getElementById('tabla-participantes').innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 20px;">Error de conexión</td></tr>';
             }
         }
 
@@ -697,6 +733,8 @@
 
         // Cargar datos del grupo seleccionado
         function cargarDatosGrupo() {
+            if (!modoDocente) return;
+            
             const grupo = document.getElementById('selector-grupo').value;
             
             let datosFiltrados = todosLosDatos;
@@ -780,6 +818,8 @@
 
         // Descargar gráfica grupal
         function descargarGraficaGrupal() {
+            if (!modoDocente) return;
+            
             const canvas = document.getElementById('grafica-grupal');
             if (!canvas) return;
             
@@ -883,14 +923,15 @@
         // INICIALIZACIÓN
         // ===========================================
         document.addEventListener('DOMContentLoaded', function() {
+            // Verificar si es docente por el parámetro en URL
+            verificarAccesoDocente();
+            
             generarPreguntas();
             document.getElementById('alumno-numero').textContent = contadorTests;
             document.getElementById('test-numero').textContent = contadorTests;
             
-            // Cargar datos desde Sheets al iniciar
+            // Siempre cargar datos en segundo plano (aunque no se muestren)
             cargarDatosDesdeSheets();
-            
-            // Actualizar cada 30 segundos (opcional)
             setInterval(cargarDatosDesdeSheets, 30000);
         });
     </script>
