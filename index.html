@@ -234,6 +234,10 @@
             background: linear-gradient(135deg, #f39c12, #e67e22);
         }
 
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+
         .resultado-individual {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -322,6 +326,21 @@
             text-align: center;
             margin-bottom: 15px;
             font-weight: bold;
+        }
+
+        .admin-section {
+            background: #f8f9fa;
+            border: 2px solid #e74c3c;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .admin-title {
+            color: #e74c3c;
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 1.2em;
         }
 
         @media (max-width: 600px) {
@@ -442,6 +461,15 @@
                 <button class="btn btn-warning" onclick="descargarGraficaGrupal()" style="flex: 1;">📥 Descargar Gráfica</button>
             </div>
 
+            <!-- SECCIÓN DE ADMINISTRACIÓN (SOLO DOCENTE) -->
+            <div id="admin-section" class="admin-section" style="display: none;">
+                <div class="admin-title">⚠️ ADMINISTRACIÓN DE DATOS</div>
+                <p style="margin-bottom: 15px; color: #666;">Esta acción eliminará TODOS los resultados de la hoja de Google Sheets. Esta operación no se puede deshacer.</p>
+                <button class="btn btn-danger" onclick="confirmarEliminarDatos()" style="margin: 0;">
+                    🗑️ ELIMINAR TODOS LOS DATOS
+                </button>
+            </div>
+
             <!-- Tabla de participantes -->
             <h3 style="margin: 20px 0 10px;">📋 Participantes</h3>
             <div style="max-height: 300px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 10px;">
@@ -515,6 +543,7 @@
                 modoDocente = true;
                 document.getElementById('modo-docente-badge').style.display = 'block';
                 document.getElementById('tabs-container').style.display = 'flex';
+                document.getElementById('admin-section').style.display = 'block';
                 return true;
             }
             return false;
@@ -779,6 +808,61 @@
             link.download = `grafica_grupal_${new Date().toLocaleDateString()}.png`;
             link.href = canvas.toDataURL('image/png');
             link.click();
+        }
+
+        // ===========================================
+        // FUNCIÓN PARA ELIMINAR TODOS LOS DATOS
+        // ===========================================
+        function confirmarEliminarDatos() {
+            if (!modoDocente) return;
+            
+            const confirmacion = confirm('⚠️ ¿Estás ABSOLUTAMENTE SEGURO de eliminar TODOS los datos?\n\nEsta acción no se puede deshacer y se borrarán todas las respuestas de los alumnos.');
+            
+            if (confirmacion) {
+                const confirmacion2 = prompt('Escribe "ELIMINAR" para confirmar:');
+                
+                if (confirmacion2 === 'ELIMINAR') {
+                    eliminarTodosLosDatos();
+                } else {
+                    alert('Operación cancelada.');
+                }
+            }
+        }
+
+        async function eliminarTodosLosDatos() {
+            try {
+                const btnEliminar = document.querySelector('.btn-danger');
+                const textoOriginal = btnEliminar.textContent;
+                btnEliminar.textContent = '⏳ ELIMINANDO...';
+                btnEliminar.disabled = true;
+                
+                const response = await fetch(URL_GOOGLE_SCRIPT + '?accion=eliminar', {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('✅ Todos los datos han sido eliminados correctamente.');
+                    todosLosDatos = [];
+                    actualizarSelectorGrupos();
+                    cargarDatosGrupo();
+                } else {
+                    alert('❌ Error al eliminar datos: ' + (data.error || 'Error desconocido'));
+                }
+                
+                btnEliminar.textContent = textoOriginal;
+                btnEliminar.disabled = false;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('❌ Error de conexión al intentar eliminar los datos.');
+                
+                const btnEliminar = document.querySelector('.btn-danger');
+                btnEliminar.textContent = '🗑️ ELIMINAR TODOS LOS DATOS';
+                btnEliminar.disabled = false;
+            }
         }
 
         // ===========================================
