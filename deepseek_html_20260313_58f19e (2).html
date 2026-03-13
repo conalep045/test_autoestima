@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>CONALEP - Test de Autoestima Profesional</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 25px;
+            padding: 25px 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .institution {
+            text-align: center;
+            color: #e74c3c;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 25px;
+            font-size: 1em;
+            padding: 0 10px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 50px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            background: transparent;
+            color: #666;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .alumno-actual {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.1em;
+        }
+
+        .contador {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-weight: bold;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1em;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .preguntas-container {
+            max-height: 500px;
+            overflow-y: auto;
+            margin: 20px 0;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+        }
+
+        .pregunta-item {
+            background: white;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+            border-left: 6px solid #3498db;
+        }
+
+        .pregunta-texto {
+            font-weight: 600;
+            margin-bottom: 15px;
+            font-size: 1.05em;
+            color: #2c3e50;
+            line-height: 1.4;
+        }
+
+        .opciones {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .opcion {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 10px;
+            background: #f0f0f0;
+            border-radius: 30px;
+            cursor: pointer;
+            border: 2px solid #e0e0e0;
+            transition: all 0.2s;
+        }
+
+        .opcion:hover {
+            background: #e8f4fd;
+            border-color: #3498db;
+        }
+
+        .opcion input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #3498db;
+        }
+
+        .opcion label {
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.95em;
+        }
+
+        .opcion.seleccionada {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            border-color: #2980b9;
+            color: white;
+        }
+
+        .opcion.seleccionada label {
+            color: white;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 18px 25px;
+            font-size: 1.2em;
+            border-radius: 50px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+            margin: 15px 0;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60, #229954);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+        }
+
+        .resultado-individual {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .puntaje-individual {
+            font-size: 3.5em;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+
+        .grafica-individual-container {
+            max-width: 250px;
+            margin: 15px auto;
+            padding: 15px;
+            background: white;
+            border-radius: 15px;
+        }
+
+        .grafica-grupal-container {
+            width: 100%;
+            height: 300px;
+            margin: 20px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 15px;
+        }
+
+        .stats-card {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .stat {
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            color: white;
+        }
+
+        .stat-baja {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+
+        .stat-correcta {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+        }
+
+        .stat-alta {
+            background: linear-gradient(135deg, #27ae60, #229954);
+        }
+
+        .stat-numero {
+            font-size: 2.5em;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 25px;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+
+        .grupo-selector {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 15px;
+            margin: 15px 0;
+        }
+
+        @media (max-width: 600px) {
+            .opciones {
+                grid-template-columns: 1fr;
+            }
+            
+            .pregunta-item {
+                padding: 15px;
+            }
+            
+            .btn {
+                padding: 15px 20px;
+                font-size: 1.1em;
+            }
+
+            .stats-card {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 CONALEP</h1>
+        <div class="institution">Colegio Nacional de Educación Profesional Técnica</div>
+        <h1>Test de Autoestima Profesional</h1>
+        <div class="subtitle">Responde las 20 preguntas con honestidad</div>
+
+        <!-- Pestañas -->
+        <div class="tabs">
+            <div class="tab active" onclick="cambiarPestana('test')">📝 Responder Test</div>
+            <div class="tab" onclick="cambiarPestana('grupo')">📊 Ver Resultados</div>
+        </div>
+
+        <!-- Contenido: Responder Test -->
+        <div id="tab-test" class="tab-content active">
+            <div class="alumno-actual">
+                <span>Alumno: <strong><span id="alumno-numero">1</span></strong></span>
+                <span class="contador">Test #<span id="test-numero">1</span></span>
+            </div>
+
+            <div class="input-group">
+                <label>📝 Nombre completo:</label>
+                <input type="text" id="nombre-alumno" placeholder="Ej: Juan Pérez García" autocomplete="off">
+            </div>
+
+            <div class="input-group">
+                <label>👥 Grupo:</label>
+                <input type="text" id="grupo-alumno" placeholder="Ej: 501" value="501">
+            </div>
+
+            <!-- Las 20 preguntas se generarán aquí -->
+            <div class="preguntas-container" id="preguntas"></div>
+
+            <!-- Botón para enviar -->
+            <button class="btn btn-success" onclick="enviarRespuestas()" id="btnEnviar">
+                📤 ENVIAR MIS RESPUESTAS
+            </button>
+
+            <!-- Resultado individual (se muestra después de enviar) -->
+            <div id="resultado-individual" style="display: none;">
+                <h3 style="margin: 20px 0 10px;">🎯 Tu Resultado</h3>
+                <div class="resultado-individual">
+                    <div style="font-size: 1.2em;">Puntaje Total</div>
+                    <div class="puntaje-individual" id="puntaje-individual">0</div>
+                    <div style="font-size: 1.5em; font-weight: bold; margin: 10px 0;" id="nivel-individual"></div>
+                    
+                    <div class="grafica-individual-container">
+                        <canvas id="grafica-individual" width="200" height="200"></canvas>
+                    </div>
+
+                    <div id="recomendacion-individual" style="margin-top: 15px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 10px;">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenido: Ver Resultados -->
+        <div id="tab-grupo" class="tab-content">
+            <h2 style="margin-bottom: 20px;">📊 RESULTADOS DEL GRUPO</h2>
+            
+            <div class="grupo-selector">
+                <label style="font-weight: bold; display: block; margin-bottom: 10px;">Selecciona un grupo:</label>
+                <select id="selector-grupo" onchange="cargarDatosGrupo()" style="width: 100%; padding: 12px; border-radius: 10px; border: 2px solid #3498db;">
+                    <option value="todos">TODOS LOS GRUPOS</option>
+                </select>
+            </div>
+
+            <!-- Estadísticas -->
+            <div class="stats-card">
+                <div class="stat stat-baja">
+                    <div class="stat-numero" id="total-baja">0</div>
+                    <div class="stat-label">Baja Autoestima</div>
+                    <div id="porcentaje-baja">0%</div>
+                </div>
+                <div class="stat stat-correcta">
+                    <div class="stat-numero" id="total-correcta">0</div>
+                    <div class="stat-label">Correcta Autoestima</div>
+                    <div id="porcentaje-correcta">0%</div>
+                </div>
+                <div class="stat stat-alta">
+                    <div class="stat-numero" id="total-alta">0</div>
+                    <div class="stat-label">Alta Autoestima</div>
+                    <div id="porcentaje-alta">0%</div>
+                </div>
+            </div>
+
+            <!-- Gráfica grupal -->
+            <div class="grafica-grupal-container">
+                <canvas id="grafica-grupal"></canvas>
+            </div>
+
+            <!-- Botones de acción -->
+            <div style="display: flex; gap: 10px; margin: 20px 0;">
+                <button class="btn btn-info" onclick="cargarDatosGrupo()" style="flex: 1;">🔄 Actualizar</button>
+                <button class="btn btn-warning" onclick="descargarGraficaGrupal()" style="flex: 1;">📥 Descargar Gráfica</button>
+            </div>
+
+            <!-- Tabla de participantes -->
+            <h3 style="margin: 20px 0 10px;">📋 Participantes</h3>
+            <div style="max-height: 300px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 10px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                            <th style="background: #3498db; color: white; padding: 12px; position: sticky; top: 0;">Nombre</th>
+                            <th style="background: #3498db; color: white; padding: 12px; position: sticky; top: 0;">Grupo</th>
+                            <th style="background: #3498db; color: white; padding: 12px; position: sticky; top: 0;">Nivel</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-participantes">
+                        <tr><td colspan="3" style="text-align: center; padding: 20px;">No hay participantes aún</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>✅ Tus respuestas se guardan automáticamente | Los resultados se actualizan en tiempo real</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // ===========================================
+        // CONFIGURACIÓN - TU URL DE GOOGLE APPS SCRIPT
+        // ===========================================
+        const URL_GOOGLE_SCRIPT = 'https://script.google.com/macros/s/AKfycbwgNYzqJALA-OjAIYdnirv7AfCkNDuCMUXyAsmc9pjW2gk60iJ4glbQTvBT_Vdkl9Iutw/exec';
+        // ===========================================
+
+        // Las 20 preguntas del test
+        const preguntas = [
+            "Me siento orgulloso(a) de estar estudiando en CONALEP.",
+            "Creo que las habilidades técnicas que estoy aprendiendo me servirán para tener un buen futuro laboral.",
+            "Cuando un compañero hace mejor una práctica que yo, me siento mal conmigo mismo(a) y pienso que no soy lo suficientemente bueno(a).",
+            "Me cuesta trabajo hablar en público o exponer ideas frente a mis compañeros y profesor.",
+            "Considero que tengo la capacidad para resolver problemas prácticos relacionados con mi carrera.",
+            "Evito participar en concursos académicos o eventos de mi escuela porque creo que no voy a ganar.",
+            "Me siento satisfecho(a) con el rendimiento académico que tengo en los módulos profesionales.",
+            "Pienso que, aunque me esfuerce, no lograré terminar mi carrera técnica.",
+            "Me comparo con otros compañeros y siento que ellos son más inteligentes o capaces que yo.",
+            "Acepto los cumplidos de mis profesores o compañeros sobre mi trabajo sin sentirme incómodo(a) o pensar que se equivocan.",
+            "Cuando enfrento una dificultad en un proyecto escolar, busco soluciones de manera creativa y persistente.",
+            "Me da vergüenza o miedo preguntar al profesor cuando no entiendo un tema, por miedo a que piensen que soy 'tonto(a)'.",
+            "Siento que mi opinión es tan valiosa como la de los demás en los trabajos en equipo.",
+            "Pienso que no soy lo suficientemente 'listo(a)' para ciertos temas, por lo que termino esforzándome menos.",
+            "Me visualizo en el futuro ejerciendo con éxito la profesión que estoy estudiando.",
+            "Si me equivoco en una práctica o examen, lo veo como una oportunidad para aprender y mejorar.",
+            "Dependo mucho de la aprobación de mis profesores o compañeros para sentir que hice un buen trabajo.",
+            "Conozco mis principales fortalezas (puntos fuertes) como estudiante y futuro profesional.",
+            "Prefiero no esforzarme demasiado en un proyecto, para que, si no me sale bien, pueda decir que no me importaba.",
+            "Estoy convencido(a) de que puedo llegar a ser un(a) gran profesional y aportar algo valioso a la sociedad."
+        ];
+
+        // Variables globales
+        let contadorTests = 1;
+        let chartIndividual = null;
+        let chartGrupal = null;
+        let todosLosDatos = [];
+
+        // Cambiar entre pestañas
+        function cambiarPestana(pestana) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            if (pestana === 'test') {
+                document.querySelectorAll('.tab')[0].classList.add('active');
+                document.getElementById('tab-test').classList.add('active');
+                // Aseguramos que las preguntas se muestren
+                generarPreguntas();
+            } else {
+                document.querySelectorAll('.tab')[1].classList.add('active');
+                document.getElementById('tab-grupo').classList.add('active');
+                cargarDatosDesdeStorage();
+            }
+        }
+
+        // Generar las preguntas en el HTML
+        function generarPreguntas() {
+            const container = document.getElementById('preguntas');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            for (let i = 0; i < preguntas.length; i++) {
+                const div = document.createElement('div');
+                div.className = 'pregunta-item';
+                div.innerHTML = `
+                    <div class="pregunta-texto">${i + 1}. ${preguntas[i]}</div>
+                    <div class="opciones">
+                        <div class="opcion" onclick="seleccionarOpcion(this, 'p${i}', 'A')">
+                            <input type="radio" name="p${i}" value="A" id="p${i}A">
+                            <label for="p${i}A">A) Nunca</label>
+                        </div>
+                        <div class="opcion" onclick="seleccionarOpcion(this, 'p${i}', 'B')">
+                            <input type="radio" name="p${i}" value="B" id="p${i}B">
+                            <label for="p${i}B">B) Algunas veces</label>
+                        </div>
+                        <div class="opcion" onclick="seleccionarOpcion(this, 'p${i}', 'C')">
+                            <input type="radio" name="p${i}" value="C" id="p${i}C">
+                            <label for="p${i}C">C) Frecuentemente</label>
+                        </div>
+                        <div class="opcion" onclick="seleccionarOpcion(this, 'p${i}', 'D')">
+                            <input type="radio" name="p${i}" value="D" id="p${i}D">
+                            <label for="p${i}D">D) Siempre</label>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(div);
+            }
+        }
+
+        // Seleccionar una opción
+        function seleccionarOpcion(element, name, value) {
+            const radio = element.querySelector('input');
+            radio.checked = true;
+            
+            const parent = element.parentNode;
+            Array.from(parent.children).forEach(child => {
+                child.classList.remove('seleccionada');
+            });
+            
+            element.classList.add('seleccionada');
+        }
+
+        // Calcular puntaje
+        function calcularPuntaje(respuestas) {
+            let puntaje = 0;
+            const negativas = [2,3,5,7,8,11,13,16,18];
+            
+            for (let i = 0; i < respuestas.length; i++) {
+                let valor = 0;
+                switch(respuestas[i]) {
+                    case 'A': valor = 1; break;
+                    case 'B': valor = 2; break;
+                    case 'C': valor = 3; break;
+                    case 'D': valor = 4; break;
+                }
+                
+                if (negativas.includes(i)) {
+                    valor = 5 - valor;
+                }
+                puntaje += valor;
+            }
+            return puntaje;
+        }
+
+        // Obtener nivel
+        function obtenerNivel(puntaje) {
+            if (puntaje >= 20 && puntaje <= 46) return 'Baja Autoestima';
+            if (puntaje >= 47 && puntaje <= 60) return 'Correcta Autoestima';
+            return 'Alta Autoestima';
+        }
+
+        // Obtener recomendación
+        function obtenerRecomendacion(nivel) {
+            switch(nivel) {
+                case 'Baja Autoestima':
+                    return '🌟 Identifica y celebra tus logros diarios. Participa en actividades grupales y platica con tu tutor.';
+                case 'Correcta Autoestima':
+                    return '💪 Sigue fortaleciendo tu autoconocimiento. Atrévete a participar en proyectos retadores.';
+                case 'Alta Autoestima':
+                    return '👑 Comparte tu confianza con tus compañeros. Busca roles de liderazgo.';
+                default:
+                    return '';
+            }
+        }
+
+        // Crear gráfica individual
+        function crearGraficaIndividual(nivel) {
+            const ctx = document.getElementById('grafica-individual').getContext('2d');
+            
+            if (chartIndividual) {
+                chartIndividual.destroy();
+            }
+            
+            let datos = [0, 0, 0];
+            if (nivel.includes('Baja')) datos = [1, 0, 0];
+            else if (nivel.includes('Correcta')) datos = [0, 1, 0];
+            else datos = [0, 0, 1];
+            
+            chartIndividual = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Baja', 'Correcta', 'Alta'],
+                    datasets: [{
+                        data: datos,
+                        backgroundColor: ['#FF6B6B', '#FFD93D', '#6BCB77'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    cutout: '70%',
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        // Guardar en localStorage
+        function guardarEnStorage(datos) {
+            let existentes = JSON.parse(localStorage.getItem('resultadosTest')) || [];
+            existentes.push(datos);
+            localStorage.setItem('resultadosTest', JSON.stringify(existentes));
+            todosLosDatos = existentes;
+        }
+
+        // Cargar datos de localStorage
+        function cargarDatosDesdeStorage() {
+            todosLosDatos = JSON.parse(localStorage.getItem('resultadosTest')) || [];
+            actualizarSelectorGrupos();
+            cargarDatosGrupo();
+        }
+
+        // Actualizar selector de grupos
+        function actualizarSelectorGrupos() {
+            const select = document.getElementById('selector-grupo');
+            if (!select) return;
+            
+            const grupos = [...new Set(todosLosDatos.map(d => d.grupo))].sort();
+            
+            let opciones = '<option value="todos">TODOS LOS GRUPOS</option>';
+            grupos.forEach(grupo => {
+                opciones += `<option value="${grupo}">Grupo ${grupo}</option>`;
+            });
+            
+            select.innerHTML = opciones;
+        }
+
+        // Cargar datos del grupo seleccionado
+        function cargarDatosGrupo() {
+            const grupo = document.getElementById('selector-grupo').value;
+            
+            let datosFiltrados = todosLosDatos;
+            if (grupo !== 'todos') {
+                datosFiltrados = todosLosDatos.filter(d => d.grupo === grupo);
+            }
+            
+            const total = datosFiltrados.length;
+            const baja = datosFiltrados.filter(d => d.nivel === 'Baja Autoestima').length;
+            const correcta = datosFiltrados.filter(d => d.nivel === 'Correcta Autoestima').length;
+            const alta = datosFiltrados.filter(d => d.nivel === 'Alta Autoestima').length;
+            
+            const porcentajeBaja = total > 0 ? ((baja / total) * 100).toFixed(1) : 0;
+            const porcentajeCorrecta = total > 0 ? ((correcta / total) * 100).toFixed(1) : 0;
+            const porcentajeAlta = total > 0 ? ((alta / total) * 100).toFixed(1) : 0;
+            
+            document.getElementById('total-baja').textContent = baja;
+            document.getElementById('total-correcta').textContent = correcta;
+            document.getElementById('total-alta').textContent = alta;
+            document.getElementById('porcentaje-baja').textContent = porcentajeBaja + '%';
+            document.getElementById('porcentaje-correcta').textContent = porcentajeCorrecta + '%';
+            document.getElementById('porcentaje-alta').textContent = porcentajeAlta + '%';
+            
+            actualizarGraficaGrupal(baja, correcta, alta, grupo);
+            actualizarTablaParticipantes(datosFiltrados);
+        }
+
+        // Actualizar gráfica grupal
+        function actualizarGraficaGrupal(baja, correcta, alta, grupo) {
+            const ctx = document.getElementById('grafica-grupal').getContext('2d');
+            
+            if (chartGrupal) {
+                chartGrupal.destroy();
+            }
+            
+            chartGrupal = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Baja Autoestima', 'Correcta Autoestima', 'Alta Autoestima'],
+                    datasets: [{
+                        data: [baja, correcta, alta],
+                        backgroundColor: ['#FF6B6B', '#FFD93D', '#6BCB77'],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: grupo === 'todos' ? 'Todos los grupos' : `Grupo ${grupo}`,
+                            font: { size: 16, weight: 'bold' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Actualizar tabla de participantes
+        function actualizarTablaParticipantes(datos) {
+            const tbody = document.getElementById('tabla-participantes');
+            
+            if (datos.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 20px;">No hay participantes</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = datos.map(d => `
+                <tr>
+                    <td style="padding: 10px; border-bottom: 1px solid #e0e0e0;">${d.nombre}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #e0e0e0;"><strong>${d.grupo}</strong></td>
+                    <td style="padding: 10px; border-bottom: 1px solid #e0e0e0;">
+                        <span style="padding: 5px 10px; border-radius: 15px; background: ${d.nivel.includes('Baja') ? '#e74c3c' : (d.nivel.includes('Correcta') ? '#f39c12' : '#27ae60')}; color: white;">
+                            ${d.nivel}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Descargar gráfica grupal
+        function descargarGraficaGrupal() {
+            const canvas = document.getElementById('grafica-grupal');
+            if (!canvas) return;
+            
+            const link = document.createElement('a');
+            link.download = `grafica_grupal_${new Date().toLocaleDateString()}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        // ENVIAR RESPUESTAS A GOOGLE SHEETS Y GUARDAR LOCAL
+        async function enviarRespuestas() {
+            const nombre = document.getElementById('nombre-alumno').value.trim();
+            const grupo = document.getElementById('grupo-alumno').value.trim();
+            
+            if (!nombre || !grupo) {
+                alert('❌ Por favor ingresa tu nombre y grupo');
+                return;
+            }
+            
+            const respuestas = [];
+            for (let i = 0; i < preguntas.length; i++) {
+                const radios = document.getElementsByName(`p${i}`);
+                let seleccionada = null;
+                
+                for (const radio of radios) {
+                    if (radio.checked) {
+                        seleccionada = radio.value;
+                        break;
+                    }
+                }
+                
+                if (!seleccionada) {
+                    alert(`❌ Por favor responde la pregunta ${i + 1}`);
+                    return;
+                }
+                
+                respuestas.push(seleccionada);
+            }
+            
+            const puntaje = calcularPuntaje(respuestas);
+            const nivel = obtenerNivel(puntaje);
+            
+            const datosAlumno = {
+                nombre: nombre,
+                grupo: grupo,
+                respuestas: respuestas,
+                puntaje: puntaje,
+                nivel: nivel,
+                fecha: new Date().toLocaleString()
+            };
+            
+            guardarEnStorage(datosAlumno);
+            
+            document.getElementById('resultado-individual').style.display = 'block';
+            document.getElementById('puntaje-individual').textContent = puntaje;
+            document.getElementById('nivel-individual').textContent = nivel;
+            document.getElementById('recomendacion-individual').textContent = obtenerRecomendacion(nivel);
+            crearGraficaIndividual(nivel);
+            
+            const btn = document.getElementById('btnEnviar');
+            const textoOriginal = btn.textContent;
+            btn.textContent = '⏳ ENVIANDO...';
+            btn.disabled = true;
+            
+            try {
+                await fetch(URL_GOOGLE_SCRIPT, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(datosAlumno)
+                });
+                
+                alert('✅ ¡Gracias! Tus respuestas se han guardado correctamente.');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('⚠️ Hubo un problema de conexión, pero tus respuestas se guardaron localmente.');
+            }
+            
+            btn.textContent = textoOriginal;
+            btn.disabled = false;
+            
+            contadorTests++;
+            document.getElementById('alumno-numero').textContent = contadorTests;
+            document.getElementById('test-numero').textContent = contadorTests;
+            
+            const radios = document.querySelectorAll('input[type="radio"]');
+            radios.forEach(radio => radio.checked = false);
+            document.querySelectorAll('.opcion').forEach(op => {
+                op.classList.remove('seleccionada');
+            });
+            
+            document.getElementById('nombre-alumno').value = '';
+        }
+
+        // Inicializar - AHORA SÍ SE EJECUTA
+        document.addEventListener('DOMContentLoaded', function() {
+            generarPreguntas();
+            document.getElementById('alumno-numero').textContent = contadorTests;
+            document.getElementById('test-numero').textContent = contadorTests;
+            cargarDatosDesdeStorage();
+        });
+    </script>
+</body>
+</html>
