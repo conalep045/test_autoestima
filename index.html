@@ -677,6 +677,7 @@
                 const data = await response.json();
                 
                 if (data.success && data.datos) {
+                    // Actualizar la variable global
                     todosLosDatos = data.datos.map(d => ({
                         nombre: d.nombre,
                         grupo: d.grupo.toString(),
@@ -684,15 +685,16 @@
                         puntaje: d.puntaje
                     }));
                     
+                    // Si estamos en modo docente, actualizar la vista
                     if (modoDocente) {
                         actualizarSelectorGrupos();
                         cargarDatosGrupo();
                     }
                     
-                    console.log('✅ Datos cargados desde Sheets:', todosLosDatos.length);
+                    console.log('✅ Datos cargados:', todosLosDatos.length);
                 }
             } catch (error) {
-                console.error('Error de conexión:', error);
+                console.error('Error cargando datos:', error);
             }
         }
 
@@ -811,7 +813,7 @@
         }
 
         // ===========================================
-        // FUNCIÓN PARA ELIMINAR TODOS LOS DATOS
+        // FUNCIÓN PARA CONFIRMAR Y ELIMINAR DATOS (CORREGIDA)
         // ===========================================
         function confirmarEliminarDatos() {
             if (!modoDocente) return;
@@ -829,6 +831,9 @@
             }
         }
 
+        // ===========================================
+        // FUNCIÓN PARA ELIMINAR TODOS LOS DATOS (CORREGIDA)
+        // ===========================================
         async function eliminarTodosLosDatos() {
             try {
                 const btnEliminar = document.querySelector('.btn-danger');
@@ -844,10 +849,18 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    alert('✅ Todos los datos han sido eliminados correctamente.');
+                    alert('✅ Todos los datos han sido eliminados correctamente de Google Sheets.');
+                    
+                    // 🔥 IMPORTANTE: Limpiar la variable local
                     todosLosDatos = [];
+                    
+                    // 🔥 ACTUALIZAR LA VISTA INMEDIATAMENTE
                     actualizarSelectorGrupos();
                     cargarDatosGrupo();
+                    
+                    // 🔥 Forzar una recarga desde Sheets (por si acaso)
+                    await cargarDatosDesdeSheets();
+                    
                 } else {
                     alert('❌ Error al eliminar datos: ' + (data.error || 'Error desconocido'));
                 }
